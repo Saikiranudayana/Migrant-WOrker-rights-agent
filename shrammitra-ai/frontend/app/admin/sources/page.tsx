@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, Source } from "@/services/api";
+import { api, Source } from "../../../services/api";
 import { format } from "date-fns";
 
 const STATUS_COLORS: Record<string, string> = {

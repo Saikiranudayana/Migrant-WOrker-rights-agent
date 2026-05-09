@@ -4,8 +4,8 @@ services:
   # ---------------------------------------------------------------------------
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: shrammitra_backend
     restart: unless-stopped
     ports:
@@ -14,15 +14,13 @@ services:
       - APP_ENV=development
       - DATABASE_URL=postgresql+asyncpg://shrammitra:shrammitra@postgres:5432/shrammitra
       - REDIS_URL=redis://redis:6379/0
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      # ELASTICSEARCH_URL is read from .env (Elastic Cloud)
     env_file:
       - .env
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_healthy
-      elasticsearch:
         condition: service_healthy
     volumes:
       - ./backend:/app
@@ -100,48 +98,8 @@ services:
       timeout: 5s
       retries: 3
 
-  # ---------------------------------------------------------------------------
-  # Elasticsearch — Vector Search Engine
-  # ---------------------------------------------------------------------------
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.0
-    container_name: shrammitra_elasticsearch
-    restart: unless-stopped
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-      - cluster.name=shrammitra-local
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    networks:
-      - shrammitra_net
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-
-  # ---------------------------------------------------------------------------
-  # Kibana — Elasticsearch UI
-  # ---------------------------------------------------------------------------
-  kibana:
-    image: docker.elastic.co/kibana/kibana:9.0.0
-    container_name: shrammitra_kibana
-    restart: unless-stopped
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - shrammitra_net
+  # NOTE: Elasticsearch & Kibana run on Elastic Cloud — no local containers needed.
+  # Use https://cloud.elastic.co to access Kibana.
 
   # ---------------------------------------------------------------------------
   # Nginx Reverse Proxy
@@ -169,8 +127,6 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
-    driver: local
-  elasticsearch_data:
     driver: local
   backend_logs:
     driver: local

@@ -24,11 +24,11 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 WORKDIR /app
 
 # Install Python dependencies
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application source
-COPY app/ ./app/
+COPY backend/app/ ./app/
 COPY alembic/ ./alembic/
 COPY alembic.ini .
 

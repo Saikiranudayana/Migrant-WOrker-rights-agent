@@ -13,7 +13,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { api } from "@/services/api";
+import { api } from "../../../services/api";
 
 const LANGUAGE_COLORS: Record<string, string> = {
   hi: "#3b82f6",

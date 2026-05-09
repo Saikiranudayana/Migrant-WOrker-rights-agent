@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { api, ChatMessage } from "@/services/api";
+import { api, ChatMessage } from "../../services/api";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
