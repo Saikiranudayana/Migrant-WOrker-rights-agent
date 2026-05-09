@@ -1,0 +1,67 @@
+# ShramMitra AI — .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+.env
+*.env.local
+
+# Secrets — never commit these
+.env.production
+.env.staging
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Mypy
+.mypy_cache/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+frontend/.env.local
+frontend/.env.production
+
+# Terraform state (use remote backend, never commit state files)
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+*.tfplan
+
+# Docker
+*.tar
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Audio files (downloaded from WhatsApp, should not be in repo)
+*.ogg
+*.mp3
+
+# Elastic Open Crawler local state
+.crawler/

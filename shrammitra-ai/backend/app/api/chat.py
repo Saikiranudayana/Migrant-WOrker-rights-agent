@@ -1,0 +1,73 @@
+"""
+Direct chat query endpoint for testing and API consumers.
+
+POST /chat/query — synchronous query without WhatsApp integration.
+Used by:
+- Admin dashboard "test query" feature
+- API consumers integrating directly
+- Integration testing
+"""
+from __future__ import annotations
+
+import time
+
+import structlog
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from app.agents.orchestrator import get_orchestrator
+from app.middleware.auth import verify_admin_token
+from app.models.schemas import ChatQueryRequest, ChatQueryResponse, SourceCitation
+
+logger = structlog.get_logger(__name__)
+router = APIRouter()
+
+
+@router.post(
+    "/query",
+    response_model=ChatQueryResponse,
+    summary="Direct chat query (test endpoint)",
+    description=(
+        "Submit a direct query to the ShramMitra AI RAG pipeline. "
+        "This endpoint bypasses WhatsApp and returns a structured JSON response. "
+        "Requires admin authentication."
+    ),
+)
+async def chat_query(
+    request: ChatQueryRequest,
+    _: dict = Depends(verify_admin_token),
+) -> ChatQueryResponse:
+    """Process a direct chat query through the full RAG pipeline."""
+    orchestrator = get_orchestrator()
+
+    try:
+        agent_response = await orchestrator.process_query(
+            query=request.message,
+            detected_language=request.language,
+            session_id=request.session_id,
+        )
+    except Exception as exc:
+        logger.error("chat_query_failed", error=str(exc), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "error": "processing_failed",
+                "message": "Failed to process query. Please try again.",
+            },
+        ) from exc
+
+    return ChatQueryResponse(
+        response=agent_response.response_text,
+        language=agent_response.language,
+        sources=[
+            SourceCitation(
+                title=s["title"],
+                url=s["url"],
+                excerpt=s["excerpt"],
+                confidence=s["confidence"],
+            )
+            for s in agent_response.sources
+        ],
+        session_id=agent_response.session_id,
+        confidence=agent_response.confidence,
+        latency_ms=agent_response.latency_ms,
+    )

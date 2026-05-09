@@ -1,0 +1,98 @@
+# Elastic Open Crawler configuration for ShramMitra AI
+# Crawls official Indian government labour portals for document discovery.
+#
+# Install Elastic Open Crawler and run:
+#   ./elastic-crawler crawl crawler_config.yaml
+
+version: "2"
+
+output:
+  elasticsearch:
+    host: "${ELASTICSEARCH_URL}"
+    api_key: "${ELASTICSEARCH_API_KEY}"
+    index: "${ELASTICSEARCH_INDEX_ALIAS}"
+
+crawl:
+  max_depth: 3
+  max_pages: 500
+  concurrent_crawls: 3
+  request_timeout: 30
+  user_agent: "ShramMitra-Crawler/1.0 (Labour Rights Information Aggregator; contact@shrammitra.org)"
+
+domains:
+  - url: "https://labour.karnataka.gov.in"
+    seed_urls:
+      - "https://labour.karnataka.gov.in/English"
+      - "https://labour.karnataka.gov.in/Kannada"
+    allow_patterns:
+      - ".*labour\\.karnataka\\.gov\\.in.*"
+    deny_patterns:
+      - ".*login.*"
+      - ".*admin.*"
+      - ".*\\.jpg$"
+      - ".*\\.png$"
+      - ".*\\.gif$"
+    content_extraction:
+      body_tags: ["main", "article", ".content", "#content", ".main-content"]
+
+  - url: "https://eshram.gov.in"
+    seed_urls:
+      - "https://eshram.gov.in/"
+      - "https://eshram.gov.in/register-on-eshram"
+    allow_patterns:
+      - ".*eshram\\.gov\\.in.*"
+    deny_patterns:
+      - ".*login.*"
+      - ".*\\.jpg$"
+      - ".*\\.png$"
+    content_extraction:
+      body_tags: ["main", ".page-content", "#main-content"]
+
+  - url: "https://bocwkarnataka.in"
+    seed_urls:
+      - "https://bocwkarnataka.in/"
+      - "https://bocwkarnataka.in/schemes"
+    allow_patterns:
+      - ".*bocwkarnataka\\.in.*"
+    deny_patterns:
+      - ".*admin.*"
+      - ".*\\.jpg$"
+      - ".*\\.png$"
+
+  - url: "https://www.epfindia.gov.in"
+    seed_urls:
+      - "https://www.epfindia.gov.in/site_en/Employees.php"
+      - "https://www.epfindia.gov.in/site_en/For_Employees.php"
+    allow_patterns:
+      - ".*epfindia\\.gov\\.in.*"
+    deny_patterns:
+      - ".*login.*"
+      - ".*\\.exe$"
+
+  - url: "https://www.esic.nic.in"
+    seed_urls:
+      - "https://www.esic.nic.in/beneficiaries"
+    allow_patterns:
+      - ".*esic\\.nic\\.in.*"
+    deny_patterns:
+      - ".*login.*"
+      - ".*\\.exe$"
+
+pdf_extraction:
+  enabled: true
+  max_file_size_mb: 50
+  languages:
+    - "en"
+    - "kn"
+    - "hi"
+    - "ta"
+    - "te"
+
+deduplication:
+  enabled: true
+  field: "doc_hash"
+
+scheduling:
+  # Re-crawl every 7 days
+  interval: "7d"
+  start_time: "02:00"
