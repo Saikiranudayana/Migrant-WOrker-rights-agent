@@ -90,6 +90,9 @@ class Settings(BaseSettings):
     RATE_LIMIT_BURST: int = 10
     GLOBAL_RATE_LIMIT_PER_MINUTE: int = 1000
 
+    # ── Voice / S3 (optional — disable if S3 is not available) ─────────────
+    ENABLE_VOICE: bool = True  # Set to false if S3 is blocked (e.g., AWS Workshop accounts)
+
     # ── Monitoring ────────────────────────────────────────────────────────────
     CLOUDWATCH_NAMESPACE: str = "ShramMitra/Application"
     ENABLE_METRICS: bool = True

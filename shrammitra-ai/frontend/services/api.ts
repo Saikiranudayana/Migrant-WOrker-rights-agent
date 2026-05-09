@@ -50,6 +50,21 @@ export interface Analytics {
   language_breakdown: Record<string, number>;
 }
 
+export interface ChatMessage {
+  message: string;
+  language?: string;
+  session_id?: string;
+}
+
+export interface ChatResponse {
+  response: string;
+  language: string;
+  session_id: string;
+  confidence: number;
+  latency_ms: number;
+  sources: { title: string; url: string; excerpt: string; confidence: number }[];
+}
+
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
@@ -90,5 +105,10 @@ export const api = {
 
   async triggerReindex(): Promise<void> {
     await client.post("/admin/reindex");
+  },
+
+  async sendMessage(payload: ChatMessage): Promise<ChatResponse> {
+    const res = await client.post<ChatResponse>("/chat/message", payload);
+    return res.data;
   },
 };

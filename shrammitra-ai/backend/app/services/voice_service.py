@@ -46,6 +46,13 @@ class VoiceService:
     """AWS Transcribe + Polly integration for voice support."""
 
     def __init__(self) -> None:
+        if not settings.ENABLE_VOICE:
+            logger.info("voice_disabled", reason="ENABLE_VOICE=false — S3/Transcribe/Polly skipped")
+            self._transcribe = None
+            self._polly = None
+            self._s3 = None
+            return
+
         session = boto3.Session(
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID or None,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY or None,
@@ -60,14 +67,12 @@ class VoiceService:
     async def speech_to_text(self, audio_bytes: bytes, language: str = "en") -> str:
         """
         Transcribe audio bytes to text using Amazon Transcribe.
-
-        Args:
-            audio_bytes: Raw audio data (OGG/MP3 from WhatsApp)
-            language: Detected or expected language code
-
-        Returns:
-            Transcribed text string
+        Returns empty string if voice is disabled (ENABLE_VOICE=false).
         """
+        if not settings.ENABLE_VOICE:
+            logger.warning("speech_to_text_skipped", reason="ENABLE_VOICE=false")
+            return ""
+
         lang_code = TRANSCRIBE_LANGUAGE_MAP.get(language, "en-IN")
         job_name = f"shrammitra-{uuid.uuid4().hex[:8]}-{int(time.time())}"
         s3_key = f"audio/transcribe/{job_name}.ogg"
@@ -124,15 +129,13 @@ class VoiceService:
 
     async def text_to_speech(self, text: str, language: str = "en") -> bytes:
         """
-        Convert text to speech audio using Amazon Polly.
-
-        Args:
-            text: Text to synthesize
-            language: Language code for voice selection
-
-        Returns:
-            MP3 audio bytes
+        Convert text to speech using Amazon Polly.
+        Returns empty bytes if voice is disabled (ENABLE_VOICE=false).
         """
+        if not settings.ENABLE_VOICE:
+            logger.warning("text_to_speech_skipped", reason="ENABLE_VOICE=false")
+            return b""
+
         voice_id, engine = POLLY_VOICE_MAP.get(language, ("Aditi", "standard"))
 
         # Truncate text to Polly's limit (3000 chars for standard, 3000 for neural)
@@ -153,9 +156,11 @@ class VoiceService:
     async def upload_audio_response(self, audio_bytes: bytes, job_id: str) -> str:
         """
         Upload TTS audio to S3 and return a pre-signed URL.
-
-        Returns a URL valid for 1 hour.
+        Returns empty string if voice is disabled (ENABLE_VOICE=false).
         """
+        if not settings.ENABLE_VOICE:
+            return ""
+
         s3_key = f"audio/responses/{job_id}.mp3"
         await asyncio.to_thread(
             self._s3.put_object,

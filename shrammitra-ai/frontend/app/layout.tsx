@@ -3,8 +3,9 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "ShramMitra AI — Admin Dashboard",
-  description: "Admin dashboard for ShramMitra AI multilingual worker rights assistant",
+  title: "ShramMitra AI — Migrant Worker Rights Assistant",
+  description:
+    "Free AI assistant for migrant workers in India. Know your rights, minimum wages, safety laws, and government schemes in 7 languages.",
 };
 
 export default function RootLayout({
